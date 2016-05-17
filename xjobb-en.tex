@@ -1,0 +1,408 @@
+\documentclass[a4paper,11pt]{kth-mag}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage[latin1]{inputenc}
+\usepackage[swedish,english]{babel}
+\usepackage{modifications}
+% \begin{figure}
+% \includegraphics[width=\textwidth, height=0.34\textwidth]{KTH_logo.png}
+% \end{figure}
+\title{Deep Learning with Semi-Supervised Embeddings in ASR.}
+\author{Akash Kumar Dhaka}
+\date{June 2016}
+\blurb{Master's Thesis at TMH\\Supervisor: Dr. Giampiero Salvi\\Examiner: Prof. Danica Kragic}
+\trita{TRITA xxx yyyy-nn}
+\begin{document}
+\frontmatter
+\pagestyle{empty}
+\removepagenumbers
+\maketitle
+\selectlanguage{english}
+\begin{abstract}
+This thesis investigates semi supervised learning models in ASR for the problem
+of phoneme recognition, where we try to find a better respresentation of the input 
+data, using generative models which we learn by bayesian optimisation and use it
+as input for our feedforward deep neural network.
+
+
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Mauris
+purus. Fusce tempor. Nulla facilisi. Sed at turpis. Phasellus eu
+ipsum. Nam porttitor laoreet nulla. Phasellus massa massa, auctor
+rutrum, vehicula ut, porttitor a, massa. Pellentesque fringilla. Duis
+nibh risus, venenatis ac, tempor sed, vestibulum at, tellus. Class
+aptent taciti sociosqu ad litora torquent per conubia nostra, per
+inceptos hymenaeos.
+\end{abstract}
+\clearpage
+\begin{foreignabstract}{swedish}
+  Denna fil ger ett avhandlingsskelett.
+  Mer information om \LaTeX-mallen finns i
+  dokumentationen till paketet.
+
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Mauris
+purus. Fusce tempor. Nulla facilisi. Sed at turpis. Phasellus eu
+ipsum. Nam porttitor laoreet nulla. Phasellus massa massa, auctor
+rutrum, vehicula ut, porttitor a, massa. Pellentesque fringilla. Duis
+nibh risus, venenatis ac, tempor sed, vestibulum at, tellus. Class
+aptent taciti sociosqu ad litora torquent per conubia nostra, per
+inceptos hymenaeos.
+\end{foreignabstract}
+\clearpage
+\tableofcontents*
+\mainmatter
+\pagestyle{newchap}
+\chapter{Introduction}
+This work is aimed at exploring semi-supervised learning techniques to improve
+ the performance of an Automatic Speech Recognition system and to take advantage
+ of unlabelled data to improve the quality of automatically extracted speech
+ representations. We will analyse how we can use the unlabelled data to find good
+ descriptors and if we can improve the overall accuracy of the system by
+ incorporating this knowledge. I will briefly discuss about the recent and
+ important works in deep learning in ASR and the very recent advances in semi
+ supervised learning. In the first chapter will give a brief introduction about
+ Automatic Speech Recognition. The second chapter will be about "deep networks",
+ and what advantages they have over "shallow" networks. There is also  a section
+ on semi-supervised learning and the different approaches in it, the final
+ chapter will cover "deep networks" in ASR, and a small introduction to our approach. 
+
+\chapter{Speech and Automatic Speech Recognition}
+The chapter is a brief introduction to the problem of Automatic Speech Recognition
+(ASR). Speech is one of the most important way of communication among humans and 
+even animals. The human preference for spoken language communication is driving the need for
+human machine interaction. Most computers and mobile phones utilize a graphical
+user interface(GUI), but this scenario is changing very fast with the
+recent introduction of technologies such as Google Now, Apple Siri,
+Microsoft Cortana. Spoken language communication is one of the important 
+steps in attaining smart and futurisitic AI. A spoken language system needs
+to have both speech synthesis and speech recognition capabilities. However, we
+need more hidden from user technologies which work under the hood. For example an
+understanding, reasoning and dialog system is required to manage real time
+interactions with the user. This is still an active area of research driven by data, and we continue to ma
+advancements with better hardware, memory and computational resources at disposal. The following sectionsbriefly explain
+the different components of a speech processing system. ALthough this thesis is mostly about research on Automatic 
+Speech Recognition, we briefly explain the different component of a speech processing system.
+\section{Spoken Language Understanding}
+To properly understand the intent of the user, a spoken language understanding
+system is needed to interpret the utterances in context and carry out the
+appropriate actions. This process can operate in a feedback loop, where
+the system also understands what the user made of the subsequent actions.
+Lexical, syntactic, semantic and specific "idiosyncracies" of a language
+must be incorporated into such a system holistically with application knowledge
+to reduce the uncertainity and error. This is applicable to all languages spoken
+in the world.
+A scematic of a spoken language understanding system is shown in the figure
+%make a schematic here.
+This kind of system typically has a speech synthesizer and speech recogniser to
+perform the basic task of input/outputting of speech. A seperate "speech interpretation"
+component is required to parse the speech utterances recognised into semantic language
+forms. Similarly, a "response generation" module plays the complementary role of 
+tranforming the output knowledge based response to language based semantic forms.
+This is then fed to a text-to-speech synthesizer. On a more high level, a dialog manager
+keeps track of what converstaion has happened, and decides the future discourse of the
+conversation.   
+
+\section{Text-to-Speech Conversion}
+Text-to-Speech Conversion, often abbreviated as TTS, or speech synthesis
+is the basic process of building a machinery system that can generate
+human-like speech from any text input to mimic human speakers, which
+can be easily understood by even an untrained ear. For this task, we 
+first need to store the huge vocabulary of the language in question in memory
+or a database, which in modern times is no longer a challenge, and the
+intonation of the words in a sentence has to be done in context of the 
+situation. As we know, the stress on words or certain parts of the words
+can vary accoding to the whole sentence and "intent" of the user. Although,
+the quality of the current state of the art systems is inferior to human speech,
+TTS researchers have been able to generate high quality nultilingual TTS systems.   
+\section{Automatic Speech Recognition}
+With the invention of computers, could machines understand what humans 
+spoke became an important question. Speech recognition is a complex problem, as evidenced
+by the large variations in speech based on region, accent, age, gender, emotions, physical 
+and mental well-being.The first notable work on speech recognition was done as early as 1960s, 
+by researchers at Stanford % cite Dr. Raj reddy work here. 
+With the recent progress in the information systems and advent of internet,
+the problem has become bigger with much much bigger datasets, we can say that the problem is far 
+from being solved, and significant improvement still continues to happen in the field.
+% refer error rates on phoneme recognition over years.
+To solve the problem effectively, we try to solve different sub problems in a modular way.
+A typical practical speech recognition system is shown in the figure. Applications 
+interface with the decoder module to get recognition results, which help us to evaluate
+how confident we are with the results. \textit{Acoustic models} are concerned with the
+representation of knowledge about acoustics, phonetics, microphone, environment 
+variability, and differences due to gender, accent, dialect and age among the speakers
+of the same language. \textit{Language Models} are concerned with the system's knowledge
+of what constitutes a possible word, and what words are likely to co-occur in general, 
+and in what order. It is a hard problem to make a robust speech recognition system, 
+because of the presence of many uncertainities associated with speaker characteristics,
+speech style and rate, recognition of phonemes, possible words, unknown words, out of 
+vocabulary words(OOV), grammatical variation, nonnative accents, noise interference, 
+abnormal enviromental or sociological conditions.
+The speech signal or waveform is processed in a signal processing module that extracts 
+feature vectors for the decoder. The attempt is to filter out only the part of information
+which helps us to recognise different "parts of speech".     
+The most widely used way of solving the problem is to treat speech as a
+"beads on a string", and classify these beads seperately. 
+The beads in this case are called "phonemes", and the task is then to 
+classify these units seperately and independently from each other, and
+then use a standard technique like VITERBI algorithm to find the correct sequence
+of phonetic states using backtracking. The decoder uses both acoustic and language
+models to generate the word sequence that has the maximum posterior probability for
+the input feature vectors. We can, infact also use these results to modify the 
+acoustic or language models to improve our performace of the whole system.
+Here, we can give a more formal and mathematical definition of the problem.
+If the correct word sequence is denoted by \textbf{W}, which is denoted by
+the acoustic input \textbf{X}, the decoder aims to decode it into the output
+word sequence \textbf{W}, which resembles the original input, \textbf{W} as closely
+as possible. 
+\section{Preliminaries}
+Vestibulum dolor dolor, interdum eu, iaculis scelerisque, auctor at,
+mi. Nullam ut erat quis sem bibendum dignissim. Vestibulum volutpat
+nisl in tortor. Etiam pretium nulla et elit. Integer tortor. Ut metus
+ligula, egestas non, ornare vel, bibendum eu, urna. Pellentesque
+rutrum dui vel orci. Aliquam lacus lacus, varius a, sodales vitae,
+egestas a, purus. Integer varius venenatis odio. Pellentesque dui
+mauris, lacinia in, placerat lobortis, tempor ac, lectus.
+
+\section{The Main Theorem}
+Aliquam quis nibh quis justo elementum viverra. Vestibulum ipsum.
+Integer sit amet urna id lorem condimentum pretium. Nam adipiscing
+lobortis purus. Donec at libero id augue interdum vulputate. Curabitur
+imperdiet suscipit metus. Curabitur ac quam sed lacus accumsan
+posuere. Quisque pharetra mi sit amet enim. Curabitur quis elit. Lorem
+ipsum dolor sit amet, consectetuer adipiscing elit. Sed ultricies
+aliquet lorem. Proin posuere tincidunt diam. Donec quis orci non leo
+elementum nonummy. Donec urna lectus, fringilla at, tempus id, auctor
+a, wisi. Pellentesque habitant morbi tristique senectus et netus et
+malesuada fames ac turpis egestas. Suspendisse blandit. Nam wisi.
+Phasellus egestas lacus ut lorem. Suspendisse sapien. Fusce non dolor
+ac odio tempus placerat.\chapter{Phonemes and Language Modelling}
+\chapter{Speech Signal Representation}
+This chapter will explain, how speech can be transformed from a raw sound
+waveform to a much more compressed, and useful input to an ASR system.
+\section{Sound}
+Sound is a longitudinal pressure wave formed of compressions and rarefactions
+of aitr molecules, in a direction parallel to that of the application of
+energy. Rarefactions are zones wehere air molecules are lightly packed and streched,
+while compressions are zones where air molecules have been forced
+together, and tightly packed by the application of energy by the speaker.
+Mathematically, it is represented as a sine wave. The amount of work done to
+generate the energy that sets the air molecules in motion is represented by
+the amount of displacement of the air molecules from their originial position.
+This degree of displacement is measured as the amplitude of a sound wave. 
+To cover the wide range of amplitude properly, sound wave amplitude
+is generally measured on a logarithmic scale in decibels(dB). A decibel
+scale is a means for comparing the intensity of two sounds.
+A typical human ear can not detect sound waves having an intensity less than
+10^{-12} W/m^{2} in a noise-free environment.
+This is kept as the reference for calculation of all noise intensities and 
+denoted as 0dB and hence called the "threshold of hearing" or TOH.
+The loudest sound a human ear can tolerate without damage is about 120dB.
+The intensity of a sound wave is perceived as "loudness", while 
+\textit{pitch} is related to the fundamental frequency of the sound wave.
+It is also interesting to know that the senstivity of the human ear varies
+with the frequency and the quality of sounds, which means our sensitivity 
+and ability to differentiate between sounds does not vary linearly. 
+Another interesting issue is what makes similar words sound differently
+when spoken by people with similar accent. This is because we have 
+vocal tracts with different structures, for example, an adult male has
+greater mass in vocal folds than an adult female. 
+\subsection{Frequency Analysis and Mel-Scale} 
+There is a distinction between the perceptual attributes of a speech
+sound and its measurable physical properties. The perceptual attributes
+of sounds at different frequencies is not simple or linear in nature, as
+stated above due to the complex mechanisms of the inner ear. It has been
+shown in studies that the perceptual resolution for human ear is finer
+in the lower frequencies. One such perception motivated non-linear scale
+commonly used in speech application is the mel frequency scale, which is
+linear below 1Khz, and logarithmic above, with equal number of samples taken
+below and above 1kHz. It is hoped that mel frequency scale more closely
+mimics the sensitivity of human ear than a linear scale and provides
+for greater discrimination capabilities between different speech parts.
+It can be approximated by:
+\begin{equation}
+B(f) = 1125ln(1 + f/700)
+\end{equation} 
+\section{Feature Vectors for Speech}
+A speech waveform is high dimensional and contains a lot of correlated information. Acoustic input is
+modelled typically by concatenating Mel Frequency Cepstral Coefficients(MFCCs) or Perceptual Linear Predictive coefficients(PLPs)
+computed from the raw waveform and their first- and second- temporal differences. This approach of manually
+pre-processing of the waveform has actually proved to be quite successful 
+in discarding a large amount of information that is not useful for discrimination,
+though there is always a possibility of losing out on some "crucial" important information, which can further improve the accuracy of the system even by a few percentage points. This is one of the problems commonly seen in other fields like Computer Vision as well,
+and this is where Deep Networks have been able to beat the manual feature modelling approach in a variety of tasks ~\cite{Alexnet-2012}. 
+DNNs contain multiple hidden layers having non linear units, which are better at modelling the underlying input distribution than any hand coded features. The chapter on DNNs talks more about their special properties.
+\subsection{MFCCs}
+Here, the process to compute MFCCs is given very briefly. 
+\begin{algorithm}
+\caption{Procedure to calculate MFCCs}
+\begin{algorithmic}[1]
+ \scriptsize
+  \STATE Frame the signal into short frames, to ensure stationarity in the signal.
+  \STATE For each frame, calculate the periodogram estimate.
+  \STATE Apply the mel filterbank to power spectra, and take the sum of energy in each filter.
+  \STATE Take the logarithm of all filterbank energies
+  \STATE Take the DCT of the log filterbank energies.
+  \STATE Keep DCT coeeficients 2-13 and discard the rest, energy coefficient is optional.
+  \STATE Take the $\Delta$ and $\Delta\Delta$ of the coeffients wrt preceeding frames and append it to original 13 coefficients.
+\end{algorithmic}
+\end{algorithm}
+
+Some researchers also tend to use the original log filterbank energies, as it gives slightly more information. The MFCCs generated this way are sufficiently de-correlated and therefore quite suitable for training with GMMs, this is one of the advantages DNNs have over traditional GMMs, as they work well even with highly correlated input. Recently, researchers have used filterbank coefficients, even spectrograms as inputs to CNNs(Convolutional Neural Networks) and obtained state of the art results. 
+\chapter{Deep Neural Networks}
+This chapter will introduce us to DNNs formally, we will go through auto-encoders especially in more detail, though there will be a word about RNNs and CNNs.
+\section{Deeper than MLPs}
+A simple MLP contains a single hidden layer with multiple non-linear units generally sigmoid or ReLu
+% TODO:cite the ReLu work here.
+A deep neural network on the other hand is also a feed-forward network like MLP, but had more than 1 layer of hidden units between its inputs and its outputs. Each hidden unit uses a logistic function or ReLu(Rectified Linear unit) to map the sum of the inputs multiplied by the corresponding weights for the layer and summed together. The different activation functions generally used by DNNs are given below:
+\begin{equation}
+y_{j} = \frac{1}{(1 + e^{-x_{j}})}  \qquad y_{j} = tanh(x_{j}) \qquad y_{j} = max(x, 0)
+\end{equation}
+\begin{equation}
+x_{j} = b_{j} + \sum{y_{i}w_{ij}}
+\end{equation}
+In a DNN, the output of the previous layer acts as input for the current layer. The final layer is a "softmax" layer which contains as much nodes as the total number of possible classes for the purpose of "multi-class" classification. The output unit $j$ gets a probability score $p_{j}$, such that the sum of the probability scores of all such units amounts to 1. 
+\begin{equation}
+p_{j} = \frac{exp(x_{j})}{\sum_{k}{x_{k}}} 
+\end{equation}
+
+DNNs are generally discriminatively trained by using backpropagation algorithm to minimise the cost function given below.
+\begin{equation}
+\textit{C} = -\sum_{j}{d_{j}logp_{j}}
+\end{equation}
+
+This approach is known as "gradient-descent" algorithm. For very large datasets, calculating the gradient for the entire dataset at once could be extremely computationally intensive. To mitigate this problem, it is more efficient to compute the derivatives on a small, random mini batch of training points, and then the weights of the layer are modified proportional to the gradient. To remove the effect of noisy spurious training samples, it is common to use an additional momentum term in the training algorithm to make the training more uniform and less spiky, by smoothening the gradient computed for mini-batch t. The momentum is given by $\alpha$
+\begin{equation}
+\Delta{}w_{ij}(t) = \alpha \Delta w_{ij}(t-1) - \epsilon \frac{\partial{C}}{\partial{w_{ij}}}
+\end{equation}
+DNNs with many layers are hard to optimize because of problems like vanishing gradient. 
+DNNs with many hidden layers and many units per layer are very flexible models with a very large number of parameters, which can easily overfit due to some spurious characteristic of the training set. To reduce overfitting, several techniques like L2 regularisation or Drop-out are used. 
+
+\section{Auto-encoders}
+The network we read above are "supervised" and hence they do not take into account the input distribution of the input, and thus they are prone to over-fitting. A special kind of network called auto-encoder can help us recover useful structure in the data. The network has two components- an encoder and a decoder. The encoder takes the input $x$, and maps it to a hidden representation $y$, which is given below.
+\begin{equation}
+y = \sigma(\textbf{W}x + b)
+\end{equation}
+The latent or hidden representation $y$ is mapped back to the original input, using a decoder which is also given below:
+\begin{equation}
+ z = \sigma(W'x + b)
+\end{equation}
+This network tries to minimise the reconstruction error given as:
+\begin{equation}
+L(x,z) = || x - z ||_{2} 	\qquad 	L(x,z) = -\sum_{k=1}^{d}[x_{k}logz_{k} + (1 - x_{k})log(1 - z_{k})]
+\end{equation}
+The first equation is for continuous input, while the second part of the equation is iused for classes and bit vectors, where cross-entropy loss is used as the cost function.
+
+It has been observed, that to learn a robust representation of the data and not let the network learn the identity function, it is a good idea to corrupt the original input upto some limit, and then do the reconstruction on the corrupted input.
+\section{Deep Neural Networks in ASR}
+This section introduces us to the kind of DNNs and different architectures, which have been recently used in ASR.
+\subsection{Deep Belief Networks}
+The first set of results which beat traditional GMM-HMMs were reported by ~\cite{mohamed-2009}, where they trained DBN-DNNs for recognising the HMM states of phonemes, given an input of 9-11 frames of MFCC feature vectors concatenated from one end to the other. For a DBN-DNN, RBM(Restricted Boltzmann Machine) acts as a unit, a DBN-DNN contains several stacked layers of RBMs. The RBMs are generatively trained using the contrastive divergence algorithm outlined in ~\cite{mohamed-2009}.Intially, the results were reported on TIMIT ~\cite{timit}. Further attempts were made to replicate the success of TIMIT on large scale vocabulary applications. The first such attempt was on dara collected from Bing mobile voice search application(BMVS). It had about 24 hours of training data with high degree of variability. The DBN-DNNs trained on this dataset achieved sentence accuracy of 69.6\% on the test set compared to just 63.8\% achieved by the traditional GMM-HMM baseline.   
+\subsection{Recurrent Neural Networks}
+Recurrent Neural Networks more popularly known as RNNs are another kind of neural network with an ability to model temporal and sequential data. One major advantage with RNNs is that they do not require fixed input feature length like the above discussed feed-forward networks. The paper described in ~\cite{graves-2013}, demonstrates how RNNs can be made to understand multiple levels of representation, a salient feature of deep nets, and combine it with their ability to make flexible use of long range context in ASR. They reported a test set WER(word error rate) of 17.7\%, which beat all the previous benchmarks. RNNs have been used earlier with HMMs, but this is the first instance when RNNs have been used from end to end, and proved that stacking multiple recurrent layer each on top of the other can give better results just like their counterparts in deep feed forward networks. Given an input sequence $\textbf{x} = (x_{1}, ..., x_{T})$, a standard RNN computes the hidden vector sequence $\textbf{h} = (h_{1}, ..., h_{T})$ and output vector sequence $\textbf{y} = (y_{1}, ..., y_{T})$. 
+\begin{equation}
+h_{t} = H(W_{xh}x_{t} + W_{hh}h_{t-1} + b_{h})  \qquad  y_{t} = W_{hy}h_{t} + b_{y}
+\end{equation}
+
+\chapter{Semi-Supervised Learning}
+\section{Introduction}
+Semi Supervised Learning is a field of study in machine learning which falls between "supervised" learning(with fully labelled training data) and unsupervised learning(without any labelled training data). In most practical applications in the world, it is hard to get fully labelled training data. Un labelled training data is generally easier and in some cases much cheaper to obtain. Then an interesting question which arises is, how can the unlabelled data be used in conjunction with labelled data to improve the accuracy of a system which is trained on just the labelled data. If it can be, what is the minimum relative proportion at which the unlabelled data will lose any relevance to the problem. Now, we try to state the problem mathemetically. If we are given a set of  independent and identically distributed samples, $x_{1}, ..., x_{l} \in X$, and $y_{1}, ..., y_{l} \in Y$ such that $D_{L} = (X,Y)$ and in addition we also have u unlabelled input samples, $x_{l+1}, x_{l+2}, ..., x_{l+u} \in X_{u}$, such that $D_{U} = (X_{u})$, the total number of samples is then given as $n=l + u$. Supervised classification only utilises the information from $D_{L}$ to learn a decision boundary, whereas in semi-supervised learning framework, the decision boundary is obtained by utilizing information from both $D_{L}$ and $D_{U}$ at the same time. Semi supervised Learning then attempts to make use of this combined dataset $D = D_{L} \cup D_{U}$ to surpass the classification performance that can be obtained wither by discarding the unlabelled data and doing supervised learning or discarding the labelled data and doing unsupervised learning. Some researchers refer SSL as "tranductive" or "inductive learning". The goal of tranductive learning would be to infer the correct labels of the unlabelled dataset $D_{U}$. 
+\section{Assumptions}
+We make several assumptions in SSL, firstly we assume certain structure to the underlying input distribution. Then we make a "smoothness assumption". Data points which are close to each other in the feature space are more likely to share a label, the datapoints are also assumed to form seperate clusters, all the points in which are very likely to share a label. 
+
+\section{Types of SSL}
+This section introduces us to the different kinds of SSL techniques used.
+\subsection{Heuristic based SSL}
+Among all the existing and accepted techniques, the simplest algorithm for semi-supervised learning is based on "self-training" scheme, where a model is trained just with the labelled part of dataset,the model is then iteratively re-trained with the old labelled data and newly labelled data obtained from its own highly confident predictions, until the confidence level of the predictions drops below a certain threshold. These methods are poor, involve heuristic and can reinforce "bad" predictions. 
+It has been applied to problems in vision. ~\cite{Rosenberg-2005}.
+\subsection{Transductive SVMs}
+Transductive SVMs work on the the principle of avoiding having decision boundaries, where input is heavily distributed. Putting a decision boundary in high density regions of input, increases the chances of getting "all predictions wrong", this idea is based on the cluster smoothness, which was discussed in the previous section. Transductive Support Vector Machines (TSVMs) is an extension of traditional SVMs with unlabelled data. They have the same objective of maximising  margin between classes, while ensuring that there are few unlabelled examples near the margin. Finding the exact solution is NP-hard. Some efficient approximate algorithms have been proposed but they loack scalability to problems with very large datasets. 
+\subsection{Manifold Learning}
+In many problems, high dimensional datasets lie near a lower dimensional manifold, which have a lower rank locally. The idea is to approximate the manifold of data on the original space by fitting an atlas of low-dimensional overlapping affine charts, the unlabelled data is used to generate a detailed description of the manifold, which can then improve any classifier much like an auto-encoder. This work is demonstrated in ~\cite{pitelis-2014}. The problem is formulated as an optimization problem of estimating the affine mappings of charts and solving for a discrete labelling problem, that governs the assignment of points to the charts.
+\begin{equation}
+C(z) = \sum_{x \in X}(\sum_{i \in \textbf{z}}E_{i}(x)) + \lambda MDL(z)
+\end{equation}
+\subsection{Graph based SSL}
+Graph based SSL methods define a graph composed of nodes which represent both labelled and unlablled training examples. The nodes are connected to each other by edges, which have a weight. The weight of the edges is given according to the similarity of the examples. These methods follow smoothness of labels assumption. The problem then basically becomes as to how labels propagate over the graph. One popular approach, called as \textbf{prior-regularized measure propagation(pMP)}. The pMP algorithm minimises the following objective function:
+\begin{equation}
+F(D, G, p) = \sum_{i=1}^{l}KL(r_{i}||p_{i}) + \mu \sum_{i=1}^{n} \sum_{j\in N}w_{ij}KL(p_{i}||p_{j}) + \nu \sum_{i=l+1}^{l+u}KL(p_{i}||\widetilde{p_{i}})
+\end{equation}
+where r is the true unknown distribution, p is the hypothesized probability distribution over labels and $\widetilde{p}$ is the prior label distribution. $KL(p,q)$ is the Kullback-Leiber divergence between distributions p and q. $N_{i}$ is the graph neighborhood of sample i. The first term gives a measure of divergence between true and predicted label distributions, the second term measures the smoothness of the predicted distributions over the graph neighborhood withholding the smoothness assumption. Graph based SSL has recently been applied by ~\cite{liu-2013} in ASR. They keep a DNN as the final discriminative classifier and achieve state-of-the-art results. Graph based SSL do not give any confidence about the estimates, moreover addition of any new data points can be quite cumber-some as it will require modelling the entire graph structure again. 
+\subsection{SSL with generative models}
+These approaches take the SSL problem as a case of missing data imputation task for supervised classification problem. They are probabilistic in nature and also give confidence measures or uncertainity measures for predictions. Kingma et al in ~\cite{kingma-2014} have presented a Latent-feature discriminative models that provides an embedding or feature representation of the data similar to an auto-encoder. The deep generative model of data provides a more robust set of latent features than auto-encoders. This latent feature representation allows for clustering of related observations in latent feature space and fives quite accurate classification. The generative model used, is given below:
+\begin{equation}
+p(z) = N(z|0, I)		\qquad	p_{\theta}(x|z) = f(x,z, \theta)
+\end{equation}
+where the likelihood function $f(x;z, \theta)$ could be a gaussian. Another model presented in the same paper describes the data as generated by a latent class variable y in addition to the embedding z learnt above. The generative process is given as:
+\begin{equation}
+p(y) = Cat(y|\pi); 		\qquad   p(z) = N(z|0, I) 
+\end{equation}
+\begin{equation}
+p_{\theta}(x|z) = f(x,z,y,\theta)
+\end{equation}
+
+ $f(x,y,z,\theta)$ is a gaussian likelihood function. $z_{i}$ is the additional independent latent variables for each $x_{i}$. All $z_{i}$s can be written as the distribution of a single latent variable z. 
+ 
+ \section{Auto-Encoder Based SSL}
+ Deep Neural Networks are generally either trained either from just fully labelled data, or from just purely unlabelled data, Both models, when used alone are not ideal. Pure supervised learning does not take into account the input distribution of the data, while pure unsupervised learning does not capture the relevant class information. Ranzato in ~\cite{ranzato-2008} explored the possibility of having a joint objective made of both a \textit{supervised and unsupervised objective}on documents where bag of word representations were used as input features. They performed their experiments on Reuters and Newsgroups datasets.
+ We desire a good representation of input along with good prediction and discriminative abilities from our network.
+ The architecture of this network is similar to a regular auto-encoder with the notable difference being the addition of an additional supervised classifier in the feedback along with the regular decoder. If the $z_{(n-1)}$ is the input to the n-th layer, the code $z_{(n)}$ is then given as: $\sigma(W_{E}z_{(n-1)} + b_{E})$. The reconstruction error $E_{R}$ can be calculated as :
+ \begin{equation}
+  E_{R} = ||z_{(n-1)} - W_{D}z_{(n)} -b_{D}||_{2}^{2}
+ \end{equation}
+
+The weight matrices, $W_{E}, W_{D}, W_{C}$ and the bias values, $b_{E}, b_{D}, b_{C}$ are then calculated by performing gradient descent of the objective function with respect to all these parameters mentioned. 
+\\
+This is the approach, we are going to take in our case as well. The networks contains multiple layers of encode-decoder-classifier. The system is trained layer by layer. When all the parameters of one layer have been found out completely, the data is fed through that layer, and the output of this layer becomes the input for the next layer. The algorithm is given below:
+ \begin{algorithm}
+ \caption{Algorithm to train the network}
+ \begin{algorithmic}[1]
+ \scriptsize
+ \STATE Transform the training samples \textbf{x} into codes \textbf{z} using the encoder part of the layer.
+ \STATE Calculate the reconstruction loss $E_{R}$ using the encoded input \textbf{z}. 
+ \STATE Compute the classification error $E_{C}$ using again \textbf{z} and known labels y.
+ \STATE The loss function is then combined , and the final objective function is given as: $L = E_{R} + E_{C}$.
+ \STATE The layer is trained by minimising the combined loss term.
+ \STATE The encoded input, z is used as input to train the next layer.
+ \STATE The procedure is repeated with other layers.
+\end{algorithmic}
+\end{algorithm}
+ 
+ When the input datapoint is not accompanied by a label, the classifier part of the layer is not updated, and the loss function simply reduces to $E_{R}$. 
+ The learning algorithm is quite efficient, the computational cost is linear in the number of training samples. For each layer, the cost is given by a forward and backward pass through encoder, decoder and classifier. Note that with this training procedure, we donot need to run a backward pass through the entire network at once, which is generally highly computationally intensive. 
+\begin{figure}[h]
+\caption{Architecture of a single layer of the network. It has three components: (1) an encoder, (2) a decoder, and (3) a classifier. The loss is weighted sum of cross-entropy(CE) and reconstruction loss.}
+\centering
+\includegraphics[width=0.91\textwidth]{Architecture}
+\end{figure} 
+\section{Ladder Networks}
+\section{Proposed Line of Study}
+Here we use a system or model with multiple layers. Deep networks are generally trained either from fully labelled data using back-propagation like RNNs, CNNs or using purely unlabelled data where we use auto-encoders to find a better feature representation of the input data. In both these settings, the objectives are very different and orthogonal to each-other. In the supervised setting, the cost function is generally the cross-entropy logloss or misclassification error rate, while in unsupervised learning, the objective is to find a different and more discriminative representation of the input data, and the cost function is the second degree norm of difference between original input and reconstructed input, where the input and output are of the same dimension. It has been found, that adding noise to the original input by a process called 'corruption' in which some value of the input vector are randomly picked and set to zero, helps the network to learn even a better representation as described in ~\cite{Bengio-nips-2006}. But a hybrid approach where unsupervised learning is done in a way to aid supervised learning has not been fully explored yet, although some experiments have been done in sparse settings on document analysis ~\cite{ranzato-2008}. Our aim will be to add these seperate costs and train the network while minimising the combined cost at once in the same epoch. This is a non convex optimisation problem where we try to minimise the cost with respect to the weights of the layers. Different training procedures have been used with varying amount of success, in our case we will train each layer greedily one at a time. This means, that when the parameters of one layer have been found, the data is fed through that layer, and the output becomes the input for the training of the next layer, which is trained subsequently. 
+
+\begin{equation}
+E_R = ||x - \hat{x}||_2
+\end{equation}
+
+\begin{equation}
+E_C = -\sum{y_{i}logh_{i}}
+\end{equation}
+\begin{equation}
+E = E_R + \alpha E_C
+\end{equation}
+
+where $x$ denotes original input, $\hat{x}$ represents reconstructed input, $y$ represent target labels and $h$ denotes softmax output of the last layer.
+
+\appendix
+\addappheadtotoc
+\chapter{RDF}
+
+\begin{figure}[ht]
+\begin{center}
+And here is a figure
+\caption{\small{Several statements describing the same resource.}}\label{RDF_4}
+\end{center}
+\end{figure}
+
+that we refer to here: \ref{RDF_4}
+\end{document}
